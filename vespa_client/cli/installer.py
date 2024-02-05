@@ -117,7 +117,7 @@ class VespaCLIInstaller:
         """Retrieve the latest Vespa CLI version."""
         try:
             headers = {}
-            github_token = os.getenv("GITHUB_TOKEN")
+            github_token = os.getenv("MY_GITHUB_TOKEN")
             if github_token:
                 headers["Authorization"] = f"token {github_token}"
             res = requests.get("https://api.github.com/repos/vespa-engine/vespa/releases/latest", headers=headers)
