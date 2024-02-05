@@ -1,23 +1,25 @@
+import logging
 import os
-import requests
-import tarfile
-import shutil
 import platform
+import shutil
 import subprocess
+import tarfile
 import tempfile
 from zipfile import ZipFile
-import logging
+
+import requests
 
 # Constants
 SUPPORTED_OS = ["windows", "darwin", "linux"]
 ARCH_MAP = {"x86_64": "amd64", "amd64": "amd64", "arm64": "arm64", "aarch64": "arm64"}
 
+
 class VespaCLIInstaller:
     def __init__(self):
-        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+        logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
         self.os_name, self.arch = self.get_os_and_architecture()
-        self.vespa_cli_path = ''
-        self.vespa_executable_name = 'vespa.exe' if self.os_name == 'windows' else 'vespa'
+        self.vespa_cli_path = ""
+        self.vespa_executable_name = "vespa.exe" if self.os_name == "windows" else "vespa"
 
     @staticmethod
     def get_os_and_architecture():
@@ -65,7 +67,7 @@ class VespaCLIInstaller:
                 with tarfile.open(file_path) as tar:
                     tar.extractall(path=".")
             elif file_extension == "zip":
-                with ZipFile(file_path, 'r') as zip_ref:
+                with ZipFile(file_path, "r") as zip_ref:
                     zip_ref.extractall(".")
             logging.info("Extraction completed")
         finally:
@@ -87,7 +89,7 @@ class VespaCLIInstaller:
 
     def create_alias_windows(self, vespa_bin_path):
         """Create an alias for vespa executable on Windows."""
-        target_path = os.path.join(os.environ.get('USERPROFILE'), 'bin', self.vespa_executable_name)
+        target_path = os.path.join(os.environ.get("USERPROFILE"), "bin", self.vespa_executable_name)
         self.ensure_directory_exists(os.path.dirname(target_path))
         if not os.path.exists(target_path):
             shutil.copy(vespa_bin_path, target_path)
@@ -117,7 +119,7 @@ class VespaCLIInstaller:
     def update_system_path_windows(new_path):
         """Update the system's PATH variable on Windows."""
         try:
-            subprocess.run(['setx', 'PATH', f'%PATH%;{new_path}'], check=True)
+            subprocess.run(["setx", "PATH", f"%PATH%;{new_path}"], check=True)
             logging.info("Successfully added Vespa CLI to PATH.")
         except subprocess.SubprocessError as e:
             logging.exception("Failed to update system PATH")
@@ -134,6 +136,7 @@ class VespaCLIInstaller:
             self.create_alias(vespa_bin_path)
         except Exception as e:
             logging.exception(f"An error occurred during installation: {e}")
+
 
 if __name__ == "__main__":
     VespaCLIInstaller().run()
