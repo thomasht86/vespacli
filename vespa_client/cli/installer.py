@@ -110,17 +110,33 @@ class VespaCLIInstaller:
             shutil.move(vespa_bin_path, target_path)
             self.set_executable_permission(target_path)
             logging.info(f"Vespa CLI installed successfully at {target_path}")
+            self.update_shell_profile(self.installation_path)
         else:
             logging.info(f"Vespa CLI already installed at {target_path}")
+
+    def update_shell_profile(self, installation_path):
+        """Append the installation path to the PATH environment variable in the user's shell profile."""
+        shell = os.environ.get('SHELL', '')
+        if 'zsh' in shell:
+            profile = os.path.expanduser('~/.zshrc')
+        elif 'bash' in shell:
+            profile = os.path.expanduser('~/.bash_profile') if os.path.exists(os.path.expanduser('~/.bash_profile')) else os.path.expanduser('~/.bashrc')
+        else:
+            logging.info("Unsupported shell for automatic PATH update.")
+            return
+
+        path_update_command = f'\nexport PATH="{installation_path}:$PATH"\n'
+        try:
+            with open(profile, 'a') as file:
+                file.write(path_update_command)
+            logging.info(f"Updated {profile} with PATH to Vespa CLI.")
+        except Exception as e:
+            logging.error(f"Failed to update shell profile: {e}")
 
     def get_latest_version(self):
         """Retrieve the latest Vespa CLI version."""
         try:
-            headers = {}
-            github_token = os.getenv("MY_GITHUB_TOKEN")
-            if github_token:
-                headers["Authorization"] = f"token {github_token}"
-            res = requests.get("https://api.github.com/repos/vespa-engine/vespa/releases/latest", headers=headers)
+            res = requests.get("https://api.github.com/repos/vespa-engine/vespa/releases/latest")
             res.raise_for_status()
             version = res.json()["tag_name"].replace("v", "")
             logging.info(f"Latest Vespa CLI version: {version}")
