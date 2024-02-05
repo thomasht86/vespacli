@@ -61,7 +61,7 @@ class VespaCLIInstaller:
             logging.info(f"Download completed and saved to {file_path}")
             return file_path
         except requests.exceptions.RequestException as e:
-            logging.exception("Failed to download file")
+            logging.exception(f"Failed to download file: {e}")
             raise
 
     @staticmethod
