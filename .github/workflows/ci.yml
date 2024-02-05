@@ -35,8 +35,12 @@ jobs:
 
       - name: Verify installation
         run: |
-          source ~/.bash_profile
-          vespa version
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            echo "vespa version" | cmd
+          else
+            source ~/.bash_profile || source ~/.bashrc || true
+            vespa version
+          fi
         shell: bash
 
       - name: Install test dependencies
