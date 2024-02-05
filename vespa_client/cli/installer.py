@@ -180,7 +180,7 @@ class VespaCLIInstaller:
             logging.info(f"Latest Vespa CLI version: {version}")
             return version
         except requests.exceptions.RequestException as e:
-            logging.exception("Failed to retrieve the latest version")
+            logging.exception(f"Failed to retrieve the latest version: {e}")
             raise
 
     def run(self):
