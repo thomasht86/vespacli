@@ -5,20 +5,20 @@ import shutil
 import tarfile
 import tempfile
 from zipfile import ZipFile
+import subprocess
 
 import requests
 
-# Constants
-SUPPORTED_OS = ["windows", "darwin", "linux"]
-ARCH_MAP = {"x86_64": "amd64", "amd64": "amd64", "arm64": "arm64", "aarch64": "arm64"}
-
-
 class VespaCLIInstaller:
+    # Constants
+    SUPPORTED_OS = ["windows", "darwin", "linux"]
+    ARCH_MAP = {"x86_64": "amd64", "amd64": "amd64", "arm64": "arm64", "aarch64": "arm64"}
+    
     def __init__(self):
         logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
         self.os_name, self.arch = self.get_os_and_architecture()
         self.vespa_executable_name = "vespa.exe" if self.os_name == "windows" else "vespa"
-
+        
     def find_vespa_executable(self, extract_path):
         """Dynamically find the path to the Vespa CLI executable."""
         for root, dirs, files in os.walk(extract_path):
@@ -27,13 +27,12 @@ class VespaCLIInstaller:
         logging.error(f"Vespa CLI executable not found in {extract_path}")
         raise FileNotFoundError(f"{self.vespa_executable_name} not found after extraction")
 
-    @staticmethod
-    def get_os_and_architecture():
+    def get_os_and_architecture(self):
         """Determine the operating system and architecture."""
         os_name = platform.system().lower()
         machine = platform.machine().lower()
-        arch = ARCH_MAP.get(machine, None)  # No default architecture
-        if os_name not in SUPPORTED_OS or arch is None:
+        arch = self.ARCH_MAP.get(machine, None)  # No default architecture
+        if os_name not in self.SUPPORTED_OS or arch is None:
             raise ValueError(f"Unsupported OS or architecture: OS={os_name}, Arch={machine}")
         logging.info(f"Detected OS: {os_name}, architecture: {machine} mapped to {arch}")
         return os_name, arch
@@ -66,7 +65,7 @@ class VespaCLIInstaller:
 
     @staticmethod
     def extract_file(file_path, file_extension):
-        """Extract files from a compressed archive."""
+        """Extract files from a compressed archive, re-raise exceptions after cleanup."""
         logging.info(f"Extracting file {file_path}")
         extract_path = tempfile.mkdtemp()
         try:
@@ -77,8 +76,11 @@ class VespaCLIInstaller:
                 with ZipFile(file_path, "r") as zip_ref:
                     zip_ref.extractall(extract_path)
             logging.info("Extraction completed")
+        except Exception as e:
+            logging.error(f"Failed to extract file {file_path}: {e}")
+            raise  # Re-raise the exception after logging
         finally:
-            os.remove(file_path)
+            os.remove(file_path)  # Ensure the downloaded file is removed after extraction
         return extract_path
 
     @staticmethod
@@ -101,52 +103,35 @@ class VespaCLIInstaller:
         self.ensure_directory_exists(os.path.dirname(target_path))
         if not os.path.exists(target_path):
             shutil.copy(vespa_bin_path, target_path)
-        self.add_to_path(os.path.dirname(target_path))
+            # Update system PATH
+            self.update_system_path_windows(os.path.dirname(target_path))
+            logging.info(f"Created alias for vespa in {target_path}")
+        else:
+            logging.info(f"Alias for vespa already exists at {target_path}")
 
     def create_alias_unix(self, vespa_bin_path):
         """Create an alias for vespa executable on Unix-like systems."""
-        user_bin_path = os.path.join(os.environ.get("HOME"), "bin")
-        self.ensure_directory_exists(user_bin_path)
-        target_path = os.path.join(user_bin_path, self.vespa_executable_name)
-
-        if os.path.exists(target_path) or os.path.islink(target_path):
-            os.remove(target_path)
-        os.symlink(vespa_bin_path, target_path)
-        logging.info(f"Created symlink for vespa at {target_path}")
-
-        self.add_to_user_path(user_bin_path)
-
-    def add_to_user_path(self, new_path):
-        """Add the given path to the user's PATH environment variable, persistently."""
         shell_profile = self.detect_shell_profile()
         if not shell_profile:
-            logging.error("Shell profile not found. Manual PATH update required.")
+            logging.error("Shell profile not found. Manual alias creation required.")
             return
 
-        path_addition_script = f'\n# Add Vespa CLI to PATH\nif [[ ":$PATH:" != *":{new_path}:"* ]]; then\n    export PATH="$PATH:{new_path}"\nfi\n'
+        alias_command = f'\n# Alias for Vespa CLI\nalias vespa="{vespa_bin_path}"\n'
         try:
             with open(shell_profile, "a") as f:
-                f.write(path_addition_script)
-            logging.info(f"Added {new_path} to PATH in {shell_profile}")
+                f.write(alias_command)
+            logging.info(f"Added alias for vespa in {shell_profile}")
+
+            # Prompt the user to source their profile or open a new shell to apply changes
+            logging.info(f"Please source your shell profile ({shell_profile}) or open a new terminal session for the alias to take effect.")
         except Exception as e:
-            logging.error(f"Failed to add {new_path} to PATH. {e}")
+            logging.error(f"Failed to add alias for vespa. {e}")
 
     @staticmethod
     def update_system_path_windows(new_path):
         """Update the user-level PATH variable on Windows."""
-        import winreg
-
-        try:
-            with winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER) as reg:
-                with winreg.OpenKey(reg, r"Environment", 0, winreg.KEY_ALL_ACCESS) as key:
-                    current_path, _ = winreg.QueryValueEx(key, "PATH")
-                    if new_path not in current_path:
-                        updated_path = f"{current_path};{new_path}"
-                        winreg.SetValueEx(key, "PATH", 0, winreg.REG_EXPAND_SZ, updated_path)
-                    winreg.CloseKey(key)
-            logging.info("Successfully added Vespa CLI to user PATH.")
-        except Exception as e:
-            logging.exception("Failed to update user PATH")
+        subprocess.run(["setx", "PATH", f"%PATH%;{new_path}"], shell=True)
+        logging.info("Successfully added Vespa CLI to system PATH.")
 
     def detect_shell_profile(self):
         """Detect the user's shell profile script."""
@@ -182,10 +167,32 @@ class VespaCLIInstaller:
         except requests.exceptions.RequestException as e:
             logging.exception(f"Failed to retrieve the latest version: {e}")
             raise
+    
+    def check_brew_installed(self):
+        """Check if brew is installed on macOS."""
+        try:
+            res = subprocess.run(["which", "brew"], capture_output=True, text=True)
+            if res.returncode == 0:
+                logging.info("Homebrew is installed")
+                return True
+            else:
+                logging.info("Homebrew is not installed. Attempting binary installation.")
+                return False
+        except Exception as e:
+            logging.exception(f"An error occurred while checking for Homebrew: {e}")
+            return False
 
     def run(self):
         """Main installation process."""
         try:
+            if self.os_name == "darwin" and self.check_brew_installed():
+                logging.info("Using Homebrew to install Vespa CLI")
+                install_cmd = subprocess.run(["brew", "install", "vespa-cli"], capture_output=True, text=True)
+                if install_cmd.returncode == 0:
+                    logging.info("Vespa CLI installed successfully")
+                    return
+                else:
+                    logging.info(f"Failed to install Vespa CLI with homebrew: {install_cmd.stderr}. Attempting binary installation.")
             version = self.get_latest_version()
             extract_path = self.download_and_extract_cli(version)
             vespa_bin_path = self.find_vespa_executable(extract_path)

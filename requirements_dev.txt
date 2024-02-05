@@ -10,6 +10,7 @@ pytest~=7.4
 pytest-env~=0.6.2
 pytest-markdown-docs==0.4.3
 pytest-timeout~=2.1.0
+pytest-mock==3.12.0
 python-dotenv~=1.0.0;python_version>='3.8'
 requests~=2.31.0
 ruff>=0.0.291
