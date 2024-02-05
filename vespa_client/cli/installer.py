@@ -24,9 +24,11 @@ class VespaCLIInstaller:
         if self.os_name == "windows":
             return os.path.join(os.environ.get("USERPROFILE"), "bin")
         else:
-            # Default Unix path, check if ~/.local/bin exists or fallback to ~/bin
+            # Prefer ~/.local/bin if it exists, otherwise fallback to ~/bin
             local_bin = os.path.expanduser("~/.local/bin")
-            return local_bin if os.path.exists(local_bin) else os.path.expanduser("~/bin")
+            if not os.path.exists(local_bin):
+                os.makedirs(local_bin, exist_ok=True)
+            return local_bin
 
     def find_vespa_executable(self, extract_path):
         """Dynamically find the path to the Vespa CLI executable."""
@@ -40,7 +42,7 @@ class VespaCLIInstaller:
         """Determine the operating system and architecture."""
         os_name = platform.system().lower()
         machine = platform.machine().lower()
-        arch = self.ARCH_MAP.get(machine, None)  # No default architecture
+        arch = self.ARCH_MAP.get(machine, None)
         if os_name not in self.SUPPORTED_OS or arch is None:
             raise ValueError(f"Unsupported OS or architecture: OS={os_name}, Arch={machine}")
         logging.info(f"Detected OS: {os_name}, architecture: {machine} mapped to {arch}")
@@ -74,7 +76,7 @@ class VespaCLIInstaller:
 
     @staticmethod
     def extract_file(file_path, file_extension):
-        """Extract files from a compressed archive, re-raise exceptions after cleanup."""
+        """Extract files from a compressed archive."""
         logging.info(f"Extracting file {file_path}")
         extract_path = tempfile.mkdtemp()
         try:
@@ -85,64 +87,31 @@ class VespaCLIInstaller:
                 with ZipFile(file_path, "r") as zip_ref:
                     zip_ref.extractall(extract_path)
             logging.info("Extraction completed")
-        except Exception as e:
-            logging.error(f"Failed to extract file {file_path}: {e}")
-            raise  # Re-raise the exception after logging
         finally:
             os.remove(file_path)  # Ensure the downloaded file is removed after extraction
         return extract_path
 
-    @staticmethod
-    def set_executable_permission(file_path):
+    def set_executable_permission(self, file_path):
         """Set executable permission for Unix-like systems."""
-        if platform.system().lower() != "windows":
+        if self.os_name != "windows":
             os.chmod(file_path, os.stat(file_path).st_mode | 0o111)
             logging.info(f"Set executable permission for {file_path}")
 
-    @staticmethod
-    def ensure_directory_exists(directory_path):
+    def ensure_directory_exists(self, directory_path):
         """Ensure the target directory exists."""
-        if not os.path.exists(directory_path):
-            os.makedirs(directory_path, exist_ok=True)
-            logging.info(f"Created directory {directory_path}")
+        os.makedirs(directory_path, exist_ok=True)
+        logging.info(f"Ensured directory exists: {directory_path}")
 
-    def create_alias_windows(self, vespa_bin_path):
-        """Create an alias for vespa executable on Windows."""
-        self.ensure_directory_exists(self.installation_path)
-        target_path = os.path.join(self.installation_path, self.vespa_executable_name)
-        if not os.path.exists(target_path):
-            shutil.copy(vespa_bin_path, target_path)
-            # Update system PATH
-            self.update_system_path_windows(self.installation_path)
-            logging.info(f"Vespa CLI installed successfully at {target_path}")
-        else:
-            logging.info(f"Vespa CLI already installed at {target_path}")
-
-    def create_alias_unix(self, vespa_bin_path):
-        """Install the Vespa CLI executable in a permanent location for Unix-like systems."""
+    def install_vespa_cli(self, vespa_bin_path):
+        """Install the Vespa CLI executable to a permanent location."""
         self.ensure_directory_exists(self.installation_path)
         target_path = os.path.join(self.installation_path, self.vespa_executable_name)
         if not os.path.exists(target_path):
             shutil.move(vespa_bin_path, target_path)
+            self.set_executable_permission(target_path)
             logging.info(f"Vespa CLI installed successfully at {target_path}")
         else:
             logging.info(f"Vespa CLI already installed at {target_path}")
-
-        # Set executable permission again after moving to ensure it's correctly set
-        self.set_executable_permission(target_path)
-
-    @staticmethod
-    def update_system_path_windows(new_path):
-        """Update the user-level PATH variable on Windows."""
-        subprocess.run(["setx", "PATH", f"%PATH%;{new_path}"], shell=True)
-        logging.info("Successfully added Vespa CLI to system PATH.")
-
-    def create_alias(self, vespa_bin_path):
-        """Install Vespa executable based on the operating system."""
-        if self.os_name == "windows":
-            self.create_alias_windows(vespa_bin_path)
-        else:
-            self.create_alias_unix(vespa_bin_path)
 
     def get_latest_version(self):
         """Retrieve the latest Vespa CLI version."""
@@ -155,40 +124,16 @@ class VespaCLIInstaller:
         except requests.exceptions.RequestException as e:
             logging.exception(f"Failed to retrieve the latest version: {e}")
             raise
-    
-    def check_brew_installed(self):
-        """Check if brew is installed on macOS."""
-        try:
-            res = subprocess.run(["which", "brew"], capture_output=True, text=True)
-            if res.returncode == 0:
-                logging.info("Homebrew is installed")
-                return True
-            else:
-                logging.info("Homebrew is not installed. Attempting binary installation.")
-                return False
-        except Exception as e:
-            logging.exception(f"An error occurred while checking for Homebrew: {e}")
-            return False
 
     def run(self):
         """Main installation process."""
         try:
-            if self.os_name == "darwin" and self.check_brew_installed():
-                logging.info("Using Homebrew to install Vespa CLI")
-                install_cmd = subprocess.run(["brew", "install", "vespa-cli"], capture_output=True, text=True)
-                if install_cmd.returncode == 0:
-                    logging.info("Vespa CLI installed successfully")
-                    return
-                else:
-                    logging.info(f"Failed to install Vespa CLI with Homebrew: {install_cmd.stderr}. Attempting binary installation.")
             version = self.get_latest_version()
             extract_path = self.download_and_extract_cli(version)
             vespa_bin_path = self.find_vespa_executable(extract_path)
-            self.set_executable_permission(vespa_bin_path)
-            self.create_alias(vespa_bin_path)
+            self.install_vespa_cli(vespa_bin_path)
         except Exception as e:
             logging.exception(f"An error occurred during installation: {e}")
-
 
 if __name__ == "__main__":
     VespaCLIInstaller().run()
