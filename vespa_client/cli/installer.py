@@ -116,7 +116,11 @@ class VespaCLIInstaller:
     def get_latest_version(self):
         """Retrieve the latest Vespa CLI version."""
         try:
-            res = requests.get("https://api.github.com/repos/vespa-engine/vespa/releases/latest")
+            headers = {}
+            github_token = os.getenv("GITHUB_TOKEN")
+            if github_token:
+                headers["Authorization"] = f"token {github_token}"
+            res = requests.get("https://api.github.com/repos/vespa-engine/vespa/releases/latest", headers=headers)
             res.raise_for_status()
             version = res.json()["tag_name"].replace("v", "")
             logging.info(f"Latest Vespa CLI version: {version}")
