@@ -3,7 +3,7 @@ import platform
 import pytest
 import tempfile
 
-from vespa.cli.installer import VespaCLIInstaller  # Adjust the import based on your project structure
+from vespa_client.cli.installer import VespaCLIInstaller  # Adjust the import based on your project structure
 
 
 def test_get_os_and_architecture():
