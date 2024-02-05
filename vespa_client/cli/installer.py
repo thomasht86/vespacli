@@ -3,10 +3,12 @@ import os
 import platform
 import shutil
 import subprocess
-import tempfile
-import requests
-from zipfile import ZipFile
 import tarfile
+import tempfile
+from zipfile import ZipFile
+
+import requests
+
 
 class VespaCLIInstaller:
     # Constants
@@ -116,18 +118,22 @@ class VespaCLIInstaller:
 
     def update_shell_profile(self, installation_path):
         """Append the installation path to the PATH environment variable in the user's shell profile."""
-        shell = os.environ.get('SHELL', '')
-        if 'zsh' in shell:
-            profile = os.path.expanduser('~/.zshrc')
-        elif 'bash' in shell:
-            profile = os.path.expanduser('~/.bash_profile') if os.path.exists(os.path.expanduser('~/.bash_profile')) else os.path.expanduser('~/.bashrc')
+        shell = os.environ.get("SHELL", "")
+        if "zsh" in shell:
+            profile = os.path.expanduser("~/.zshrc")
+        elif "bash" in shell:
+            profile = (
+                os.path.expanduser("~/.bash_profile")
+                if os.path.exists(os.path.expanduser("~/.bash_profile"))
+                else os.path.expanduser("~/.bashrc")
+            )
         else:
             logging.info("Unsupported shell for automatic PATH update.")
             return
 
         path_update_command = f'\nexport PATH="{installation_path}:$PATH"\n'
         try:
-            with open(profile, 'a') as file:
+            with open(profile, "a") as file:
                 file.write(path_update_command)
             logging.info(f"Updated {profile} with PATH to Vespa CLI.")
         except Exception as e:
@@ -154,6 +160,7 @@ class VespaCLIInstaller:
             self.install_vespa_cli(vespa_bin_path)
         except Exception as e:
             logging.exception(f"An error occurred during installation: {e}")
+
 
 if __name__ == "__main__":
     VespaCLIInstaller().run()

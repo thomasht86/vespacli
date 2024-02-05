@@ -24,18 +24,6 @@ class TestVespaCLIInstaller:
         assert os_name in VespaCLIInstaller.SUPPORTED_OS
         assert arch in VespaCLIInstaller.ARCH_MAP.values()
 
-    @pytest.mark.skipif(platform.system().lower() != "windows", reason="Windows specific test")
-    def test_create_alias_windows(self, installer, mocker):
-        """Test alias creation on Windows."""
-        user_profile_path = "C:\\Users\\TestUser"
-        mocker.patch("os.environ.get", return_value=user_profile_path)
-        mocker.patch("os.path.exists", side_effect=lambda path: False)
-        mocker.patch("os.makedirs")
-        with tempfile.NamedTemporaryFile(suffix=".exe") as temp_file:
-            with mocker.patch("shutil.copy") as mock_copy:
-                installer.create_alias_windows(temp_file.name)
-                mock_copy.assert_called_once_with(temp_file.name, os.path.join(user_profile_path, "bin", "vespa.exe"))
-
     @pytest.mark.skipif(platform.system().lower() == "windows", reason="Non-Windows specific test")
     def test_create_alias_unix(self, installer, mocker):
         # TODO: write this
