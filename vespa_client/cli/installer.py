@@ -2,7 +2,6 @@ import logging
 import os
 import platform
 import shutil
-import subprocess
 import tarfile
 import tempfile
 from zipfile import ZipFile
@@ -69,7 +68,7 @@ class VespaCLIInstaller:
     def extract_file(file_path, file_extension):
         """Extract files from a compressed archive."""
         logging.info(f"Extracting file {file_path}")
-        extract_path = tempfile.mkdtemp()  # Use a temporary directory for extraction
+        extract_path = tempfile.mkdtemp()
         try:
             if file_extension == "tar.gz":
                 with tarfile.open(file_path) as tar:
@@ -79,7 +78,7 @@ class VespaCLIInstaller:
                     zip_ref.extractall(extract_path)
             logging.info("Extraction completed")
         finally:
-            os.remove(file_path)  # Clean up the downloaded archive
+            os.remove(file_path)
         return extract_path
 
     @staticmethod
@@ -105,43 +104,65 @@ class VespaCLIInstaller:
         self.add_to_path(os.path.dirname(target_path))
 
     def create_alias_unix(self, vespa_bin_path):
-        """Create an alias for vespa executable on Unix-like systems in a user-accessible location."""
-        # Define the target path within the user's home directory
+        """Create an alias for vespa executable on Unix-like systems."""
         user_bin_path = os.path.join(os.environ.get("HOME"), "bin")
-        self.ensure_directory_exists(user_bin_path)  # Ensure the directory exists
+        self.ensure_directory_exists(user_bin_path)
         target_path = os.path.join(user_bin_path, self.vespa_executable_name)
 
-        # Remove existing vespa executable or symlink if it exists
         if os.path.exists(target_path) or os.path.islink(target_path):
             os.remove(target_path)
-        # Create a symlink in the user's bin directory
         os.symlink(vespa_bin_path, target_path)
         logging.info(f"Created symlink for vespa at {target_path}")
 
-        # Add the user's bin directory to PATH if not already present
         self.add_to_user_path(user_bin_path)
 
     def add_to_user_path(self, new_path):
         """Add the given path to the user's PATH environment variable, persistently."""
         shell_profile = self.detect_shell_profile()
-        if shell_profile and new_path not in os.environ.get("PATH", ""):
+        if not shell_profile:
+            logging.error("Shell profile not found. Manual PATH update required.")
+            return
+
+        path_addition_script = f'\n# Add Vespa CLI to PATH\nif [[ ":$PATH:" != *":{new_path}:"* ]]; then\n    export PATH="$PATH:{new_path}"\nfi\n'
+        try:
             with open(shell_profile, "a") as f:
-                f.write(f'\n# Add Vespa CLI to PATH\nexport PATH="$PATH:{new_path}"\n')
+                f.write(path_addition_script)
             logging.info(f"Added {new_path} to PATH in {shell_profile}")
+        except Exception as e:
+            logging.error(f"Failed to add {new_path} to PATH. {e}")
 
     @staticmethod
-    def detect_shell_profile():
+    def update_system_path_windows(new_path):
+        """Update the user-level PATH variable on Windows."""
+        import winreg
+
+        try:
+            with winreg.ConnectRegistry(None, winreg.HKEY_CURRENT_USER) as reg:
+                with winreg.OpenKey(reg, r"Environment", 0, winreg.KEY_ALL_ACCESS) as key:
+                    current_path, _ = winreg.QueryValueEx(key, "PATH")
+                    if new_path not in current_path:
+                        updated_path = f"{current_path};{new_path}"
+                        winreg.SetValueEx(key, "PATH", 0, winreg.REG_EXPAND_SZ, updated_path)
+                    winreg.CloseKey(key)
+            logging.info("Successfully added Vespa CLI to user PATH.")
+        except Exception as e:
+            logging.exception("Failed to update user PATH")
+
+    def detect_shell_profile(self):
         """Detect the user's shell profile script."""
         home = os.environ.get("HOME")
-        if os.path.exists(os.path.join(home, ".bash_profile")):
-            return os.path.join(home, ".bash_profile")
-        elif os.path.exists(os.path.join(home, ".bashrc")):
-            return os.path.join(home, ".bashrc")
-        elif os.path.exists(os.path.join(home, ".zshrc")):
-            return os.path.join(home, ".zshrc")
-        else:
-            logging.warning("Could not detect shell profile script.")
-            return None
+        shell_profiles = [
+            ".bash_profile",
+            ".bashrc",
+            ".zshrc",
+            ".config/fish/config.fish",
+        ]
+        for profile in shell_profiles:
+            profile_path = os.path.join(home, profile)
+            if os.path.exists(profile_path):
+                return profile_path
+        logging.warning("Could not detect shell profile script.")
+        return None
 
     def create_alias(self, vespa_bin_path):
         """Create an alias for vespa executable based on the operating system."""
@@ -150,28 +171,24 @@ class VespaCLIInstaller:
         else:
             self.create_alias_unix(vespa_bin_path)
 
-    def add_to_path(self, new_path):
-        """Add the given path to the system's PATH environment variable on Windows."""
-        if self.os_name == "windows":
-            self.update_system_path_windows(new_path)
-
-    @staticmethod
-    def update_system_path_windows(new_path):
-        """Update the system's PATH variable on Windows."""
-        try:
-            subprocess.run(["setx", "PATH", f"%PATH%;{new_path}"], check=True)
-            logging.info("Successfully added Vespa CLI to PATH.")
-        except subprocess.SubprocessError as e:
-            logging.exception("Failed to update system PATH")
-
-    def run(self):
-        """Main installation process with updated executable path handling."""
+    def get_latest_version(self):
+        """Retrieve the latest Vespa CLI version."""
         try:
             res = requests.get("https://api.github.com/repos/vespa-engine/vespa/releases/latest")
             res.raise_for_status()
             version = res.json()["tag_name"].replace("v", "")
+            logging.info(f"Latest Vespa CLI version: {version}")
+            return version
+        except requests.exceptions.RequestException as e:
+            logging.exception("Failed to retrieve the latest version")
+            raise
+
+    def run(self):
+        """Main installation process."""
+        try:
+            version = self.get_latest_version()
             extract_path = self.download_and_extract_cli(version)
-            vespa_bin_path = self.find_vespa_executable(extract_path)  # Use the new method to find the executable
+            vespa_bin_path = self.find_vespa_executable(extract_path)
             self.set_executable_permission(vespa_bin_path)
             self.create_alias(vespa_bin_path)
         except Exception as e:
