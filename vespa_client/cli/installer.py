@@ -120,7 +120,7 @@ class VespaCLIInstaller:
         try:
             with open(shell_profile, "a") as f:
                 f.write(alias_command)
-            logging.info(f"Added alias for vespa in {shell_profile}")
+            logging.info(f"Added alias for vespa in {shell_profile}. Will point to {vespa_bin_path}")
 
             # Prompt the user to source their profile or open a new shell to apply changes
             logging.info(f"Please source your shell profile ({shell_profile}) or open a new terminal session for the alias to take effect.")
