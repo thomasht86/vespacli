@@ -2,23 +2,32 @@ import logging
 import os
 import platform
 import shutil
-import tarfile
-import tempfile
-from zipfile import ZipFile
 import subprocess
-
+import tempfile
 import requests
+from zipfile import ZipFile
+import tarfile
 
 class VespaCLIInstaller:
     # Constants
     SUPPORTED_OS = ["windows", "darwin", "linux"]
     ARCH_MAP = {"x86_64": "amd64", "amd64": "amd64", "arm64": "arm64", "aarch64": "arm64"}
-    
+
     def __init__(self):
         logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
         self.os_name, self.arch = self.get_os_and_architecture()
         self.vespa_executable_name = "vespa.exe" if self.os_name == "windows" else "vespa"
-        
+        self.installation_path = self.get_installation_path()
+
+    def get_installation_path(self):
+        """Determine the installation path based on the operating system."""
+        if self.os_name == "windows":
+            return os.path.join(os.environ.get("USERPROFILE"), "bin")
+        else:
+            # Default Unix path, check if ~/.local/bin exists or fallback to ~/bin
+            local_bin = os.path.expanduser("~/.local/bin")
+            return local_bin if os.path.exists(local_bin) else os.path.expanduser("~/bin")
+
     def find_vespa_executable(self, extract_path):
         """Dynamically find the path to the Vespa CLI executable."""
         for root, dirs, files in os.walk(extract_path):
@@ -99,33 +108,28 @@ class VespaCLIInstaller:
 
     def create_alias_windows(self, vespa_bin_path):
         """Create an alias for vespa executable on Windows."""
-        target_path = os.path.join(os.environ.get("USERPROFILE"), "bin", self.vespa_executable_name)
-        self.ensure_directory_exists(os.path.dirname(target_path))
+        self.ensure_directory_exists(self.installation_path)
+        target_path = os.path.join(self.installation_path, self.vespa_executable_name)
         if not os.path.exists(target_path):
             shutil.copy(vespa_bin_path, target_path)
             # Update system PATH
-            self.update_system_path_windows(os.path.dirname(target_path))
-            logging.info(f"Created alias for vespa in {target_path}")
+            self.update_system_path_windows(self.installation_path)
+            logging.info(f"Vespa CLI installed successfully at {target_path}")
         else:
-            logging.info(f"Alias for vespa already exists at {target_path}")
+            logging.info(f"Vespa CLI already installed at {target_path}")
 
     def create_alias_unix(self, vespa_bin_path):
-        """Create an alias for vespa executable on Unix-like systems."""
-        shell_profile = self.detect_shell_profile()
-        if not shell_profile:
-            logging.error("Shell profile not found. Manual alias creation required.")
-            return
+        """Install the Vespa CLI executable in a permanent location for Unix-like systems."""
+        self.ensure_directory_exists(self.installation_path)
+        target_path = os.path.join(self.installation_path, self.vespa_executable_name)
+        if not os.path.exists(target_path):
+            shutil.move(vespa_bin_path, target_path)
+            logging.info(f"Vespa CLI installed successfully at {target_path}")
+        else:
+            logging.info(f"Vespa CLI already installed at {target_path}")
 
-        alias_command = f'\n# Alias for Vespa CLI\nalias vespa="{vespa_bin_path}"\n'
-        try:
-            with open(shell_profile, "a") as f:
-                f.write(alias_command)
-            logging.info(f"Added alias for vespa in {shell_profile}. Will point to {vespa_bin_path}")
-
-            # Prompt the user to source their profile or open a new shell to apply changes
-            logging.info(f"Please source your shell profile ({shell_profile}) or open a new terminal session for the alias to take effect.")
-        except Exception as e:
-            logging.error(f"Failed to add alias for vespa. {e}")
+        # Set executable permission again after moving to ensure it's correctly set
+        self.set_executable_permission(target_path)
 
     @staticmethod
     def update_system_path_windows(new_path):
@@ -133,24 +137,8 @@ class VespaCLIInstaller:
         subprocess.run(["setx", "PATH", f"%PATH%;{new_path}"], shell=True)
         logging.info("Successfully added Vespa CLI to system PATH.")
 
-    def detect_shell_profile(self):
-        """Detect the user's shell profile script."""
-        home = os.environ.get("HOME")
-        shell_profiles = [
-            ".bash_profile",
-            ".bashrc",
-            ".zshrc",
-            ".config/fish/config.fish",
-        ]
-        for profile in shell_profiles:
-            profile_path = os.path.join(home, profile)
-            if os.path.exists(profile_path):
-                return profile_path
-        logging.warning("Could not detect shell profile script.")
-        return None
-
     def create_alias(self, vespa_bin_path):
-        """Create an alias for vespa executable based on the operating system."""
+        """Install Vespa executable based on the operating system."""
         if self.os_name == "windows":
             self.create_alias_windows(vespa_bin_path)
         else:
@@ -192,7 +180,7 @@ class VespaCLIInstaller:
                     logging.info("Vespa CLI installed successfully")
                     return
                 else:
-                    logging.info(f"Failed to install Vespa CLI with homebrew: {install_cmd.stderr}. Attempting binary installation.")
+                    logging.info(f"Failed to install Vespa CLI with Homebrew: {install_cmd.stderr}. Attempting binary installation.")
             version = self.get_latest_version()
             extract_path = self.download_and_extract_cli(version)
             vespa_bin_path = self.find_vespa_executable(extract_path)
