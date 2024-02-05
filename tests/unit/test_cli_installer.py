@@ -1,6 +1,7 @@
 import os
 import platform
 import pytest
+import tempfile
 from unittest.mock import patch, MagicMock
 from vespa_client.cli.installer import VespaCLIInstaller
 
@@ -24,10 +25,10 @@ class TestVespaCLIInstaller:
         mocker.patch('os.environ.get', return_value=user_profile_path)
         mocker.patch('os.path.exists', side_effect=lambda path: False)
         mocker.patch('os.makedirs')
-        with mocker.patch('shutil.copy') as mock_copy:
-            installer.create_alias_windows('path/to/vespa.exe')
-            mock_copy.assert_called_once_with('path/to/vespa.exe', os.path.join(user_profile_path, 'bin', 'vespa.exe'))
-
+        with tempfile.NamedTemporaryFile(suffix=".exe") as temp_file:
+            with mocker.patch('shutil.copy') as mock_copy:
+                installer.create_alias_windows(temp_file.name)
+                mock_copy.assert_called_once_with(temp_file.name, os.path.join(user_profile_path, 'bin', 'vespa.exe'))
     @pytest.mark.skipif(platform.system().lower() == 'windows', reason="Non-Windows specific test")
     def test_create_alias_unix(self, installer, mocker):
         """Test alias creation on Unix-like systems."""
