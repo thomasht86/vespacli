@@ -33,7 +33,9 @@ jobs:
 
       - name: Verify installation
         run: |
+          source ~/.bash_profile
           vespa version
+        shell: bash
 
       - name: Install test dependencies
         run: pip install -r requirements_dev.txt
