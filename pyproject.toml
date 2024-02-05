@@ -32,3 +32,7 @@ line-length = 120
 [tool.ruff.isort]
 combine-as-imports = true
 extra-standard-library = ["pytest"]
+
+[tool.isort]
+# make it compatible with black
+profile = "black" 
