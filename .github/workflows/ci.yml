@@ -20,7 +20,7 @@ jobs:
 
       - name: Save binaries path
         id: set-bin-path
-        run: echo "::set-output name=asset-path::$(pwd)/path/to/binaries"
+        run: echo "::set-output name=asset-path::$(pwd)/vespacli/go-binaries"
 
       - name: Upload binaries as artifact
         uses: actions/upload-artifact@v3
