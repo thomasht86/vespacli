@@ -58,7 +58,6 @@ class VespaBinaryDownloader:
     def download_and_extract_cli(self, version, os_name, arch):
         file_extension = "zip" if os_name == "windows" else "tar.gz"
         download_url = f"https://github.com/vespa-engine/vespa/releases/download/v{version}/vespa-cli_{version}_{os_name}_{arch}.{file_extension}"
-        self.ensure_directory_exists(self.INSTALLATION_DIR)
         file_path = self.download_file(download_url)
         self.extract_file(file_path, self.INSTALLATION_DIR)
         return file_path
@@ -93,9 +92,10 @@ class VespaBinaryDownloader:
 
     def run(self):
         version = self.get_latest_version()
+        logging.info(f"Latest Vespa CLI version: {version}")
+        self.ensure_directory_exists(self.INSTALLATION_DIR)
         checksum_file = self.download_checksum_file(version)
         checksum_content = open(checksum_file, "r").readlines()
-        logging.info(f"Latest Vespa CLI version: {version}")
         for os_name, archs in self.VALID_OS_ARCH.items():
             for arch in archs:
                 file_path = self.download_and_extract_cli(version, os_name, arch)
