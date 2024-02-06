@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-12, macos-14]
         python-version: [3.8] # Update or modify Python versions as needed
     env:
       MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
@@ -30,21 +30,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e .
       
-      - name: Run installer
-        run: python vespa_client/cli/installer.py
-
       - name: Verify installation
         run: |
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            vespa version
-          else
-            source ~/.bash_profile || source ~/.bashrc || true
-            vespa version
-          fi
-        shell: bash
+          vespacli version
 
-      - name: Install test dependencies
-        run: pip install -r requirements_dev.txt
+      - name: Install build dependencies
+        run: pip install -r requirements_build.txt
 
-      - name: Run tests with pytest
-        run: pytest
+      - name: Build 
+        run: |
+          python -m build
+
+      - name: Upload to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: twine upload dist/* --non-interactive
