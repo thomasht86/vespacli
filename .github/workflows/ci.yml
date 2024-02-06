@@ -18,15 +18,11 @@ jobs:
         run: |
           python utils/download_binaries.py
 
-      - name: Save binaries path
-        id: set-bin-path
-        run: echo "::set-output name=asset-path::$(pwd)/vespacli/go-binaries"
-
       - name: Upload binaries as artifact
         uses: actions/upload-artifact@v3
         with:
           name: binaries
-          path: ${{ steps.set-bin-path.outputs.asset-path }}
+          path: vespacli/go-binaries
 
   build-and-test:
     needs: prepare-binaries
@@ -47,6 +43,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: binaries
+          path: vespacli/go-binaries
       
       - name: Install dependencies
         run: |
