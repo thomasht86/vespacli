@@ -1,9 +1,7 @@
 import hashlib
 import logging
 import os
-import shutil
 import tarfile
-import tempfile
 from zipfile import ZipFile
 
 import requests
@@ -27,12 +25,20 @@ class VespaBinaryDownloader:
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
+        self.github_token = self.get_github_token_from_env()
+        if self.github_token:
+            logging.info("GitHub token found in environment")
+        self.request_header = (
+            {"Authorization": f"Bearer {self.github_token}"}
+            if self.github_token
+            else None
+        )
 
     def download_file(self, url):
         logging.info(f"Starting download from {url}")
         file_name = url.split("/")[-1]
         file_path = os.path.join(self.INSTALLATION_DIR, file_name)
-        with requests.get(url, stream=True) as response:
+        with requests.get(url, headers=self.request_header, stream=True) as response:
             response.raise_for_status()
             with open(file_path, "wb") as tmp_file:
                 for chunk in response.iter_content(chunk_size=8192):
@@ -55,9 +61,13 @@ class VespaBinaryDownloader:
             os.makedirs(directory_path, exist_ok=True)
         logging.info(f"Ensured directory exists: {directory_path}")
 
+    def get_github_token_from_env(self):
+        return os.environ.get("MY_GITHUB_TOKEN", None)
+
     def download_and_extract_cli(self, version, os_name, arch):
         file_extension = "zip" if os_name == "windows" else "tar.gz"
         download_url = f"https://github.com/vespa-engine/vespa/releases/download/v{version}/vespa-cli_{version}_{os_name}_{arch}.{file_extension}"
+        # Use the github token if available (due to API rate limits)
         file_path = self.download_file(download_url)
         self.extract_file(file_path, self.INSTALLATION_DIR)
         return file_path
@@ -65,7 +75,8 @@ class VespaBinaryDownloader:
     def get_latest_version(self):
         logging.info("Retrieving the latest Vespa CLI version")
         response = requests.get(
-            "https://api.github.com/repos/vespa-engine/vespa/releases/latest"
+            "https://api.github.com/repos/vespa-engine/vespa/releases/latest",
+            headers=self.request_header,
         )
         response.raise_for_status()
         return response.json()["tag_name"].strip("v")
