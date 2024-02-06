@@ -2,7 +2,7 @@ name: Cross-Platform Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ rewrite ]
   pull_request:
     branches: [ main ]
 
