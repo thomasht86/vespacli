@@ -58,20 +58,26 @@ jobs:
         run: |
           vespacli version
 
+  build-and-upload:
+    needs: [prepare-binaries, build-and-test]
+    runs-on: ubuntu-latest
+    steps:
       - name: Install build dependencies
         run: pip install -r requirements_build.txt
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: binaries
+          path: vespacli/go-binaries
+      
+      - name: Set permissions on all files in go-binaries
+        run: |
+          chmod -R +x vespacli/go-binaries/*
 
       - name: Build 
         run: |
           python -m build
-
-  upload-to-testpypi:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v3
-        with:
-          name: dist
           
       - name: Upload to PyPI
         env:
