@@ -47,7 +47,7 @@ jobs:
       
       - name: Set permissions on all files in go-binaries
         run: |
-          chmod +x vespacli/go-binaries/*
+          chmod -R +x vespacli/go-binaries/*
       
       - name: Install dependencies
         run: |
