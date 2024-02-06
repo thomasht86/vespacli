@@ -1,4 +1,4 @@
-name: Cross-Platform Tests
+name: Cross-Platform build, test, and upload to TestPyPI
 
 on:
   push:
@@ -7,16 +7,34 @@ on:
     branches: [ main ]
 
 jobs:
+  prepare-binaries:
+    runs-on: ubuntu-latest
+    outputs:
+      asset-path: ${{ steps.set-bin-path.outputs.asset-path }}
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download latest binaries
+        run: |
+          python utils/download_binaries.py
+
+      - name: Save binaries path
+        id: set-bin-path
+        run: echo "::set-output name=asset-path::$(pwd)/path/to/binaries"
+
+      - name: Upload binaries as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: binaries
+          path: ${{ steps.set-bin-path.outputs.asset-path }}
+
   build-and-test:
-    name: Build and Test
+    needs: prepare-binaries
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-12, macos-14]
         python-version: ["3.10"] # Update or modify Python versions as needed
-    env:
-      MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-
     steps:
       - uses: actions/checkout@v3
       
@@ -24,16 +42,17 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: binaries
       
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e . requests 
+          pip install -e .[test] requests 
 
-      - name: Download latest binaries
-        run: |
-          python utils/download_binaries.py
-      
       - name: Verify installation
         run: |
           vespacli version
@@ -45,6 +64,14 @@ jobs:
         run: |
           python -m build
 
+  upload-to-testpypi:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: dist
+          
       - name: Upload to PyPI
         env:
           TWINE_USERNAME: __token__
