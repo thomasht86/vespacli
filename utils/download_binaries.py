@@ -1,6 +1,7 @@
 import hashlib
 import logging
 import os
+import shutil
 import tarfile
 import tempfile
 from zipfile import ZipFile
@@ -27,15 +28,17 @@ class VespaBinaryDownloader:
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
 
-    @staticmethod
-    def download_file(url):
+    def download_file(self, url):
         logging.info(f"Starting download from {url}")
+        file_name = url.split("/")[-1]
+        file_path = os.path.join(self.INSTALLATION_DIR, file_name)
         with requests.get(url, stream=True) as response:
             response.raise_for_status()
-            with tempfile.NamedTemporaryFile(suffix=".tmp", delete=False) as tmp_file:
+            with open(file_path, "wb") as tmp_file:
                 for chunk in response.iter_content(chunk_size=8192):
                     tmp_file.write(chunk)
-                return tmp_file.name
+        logging.info(f"Download complete to {file_path}")
+        return file_path
 
     def extract_file(self, file_path, extract_to):
         logging.info(f"Extracting file {file_path} to {extract_to}")
