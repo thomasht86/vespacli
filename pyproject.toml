@@ -1,38 +1,30 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=69", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.black]
-line-length = 120
+[project]
+name = "vespacli"
+version = "8.294.50"
+description = "A Python wrapper for Vespa CLI tools, supporting multiple platforms."
+authors = [
+    {name = "Your Name", email = "your.email@example.com"},
+]
+license = {file = "LICENSE"}
+readme = "README.md"
+keywords = ["vespa", "cli", "wrapper"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
 
-[tool.mypy]
-python_version = "3.9"
-exclude = "build"
-ignore_missing_imports = true
-check_untyped_defs = true
-no_strict_optional = true
-namespace_packages = true
+[project.urls]
+homepage = "https://example.com/vespacli"
+documentation = "https://example.com/vespacli/docs"
+repository = "https://github.com/yourusername/vespacli"
 
-[[tool.mypy.overrides]]
-module = ["ddtrace.*"]
-check_untyped_defs = false
-follow_imports = "skip"
+[tool.setuptools.packages.find]
+where = ["."]
 
-[tool.pytest.ini_options]
-timeout = 300
-
-[tool.ruff]
-exclude = ['.venv', '.git', '__pycache__', 'proto', 'build']
-ignore = ['E501', 'E741']
-select = ['E', 'F', 'W', 'I']
-line-length = 120
-
-[tool.ruff.per-file-ignores]
-
-[tool.ruff.isort]
-combine-as-imports = true
-extra-standard-library = ["pytest"]
-
-[tool.isort]
-# make it compatible with black
-profile = "black" 
+[project.scripts]
+vespacli = "vespacli:run_vespa_cli"
