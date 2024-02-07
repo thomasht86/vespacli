@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vespacli"
-version = "8.294.50-alpha"
+version = "8.294.50-beta"
 description = "A Python wrapper for Vespa CLI tools, supporting multiple platforms."
 authors = [
     {name = "Your Name", email = "your.email@example.com"},
