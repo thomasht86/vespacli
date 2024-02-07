@@ -12,14 +12,14 @@ jobs:
     outputs:
       asset-path: ${{ steps.set-bin-path.outputs.asset-path }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Download latest binaries
         run: |
           python utils/download_binaries.py
 
       - name: Upload binaries as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: binaries
           path: vespacli/go-binaries
@@ -32,7 +32,7 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-12, macos-14]
         python-version: ["3.10"] # Update or modify Python versions as needed
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -40,7 +40,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binaries
           path: vespacli/go-binaries
@@ -62,16 +62,18 @@ jobs:
     needs: [prepare-binaries, build-and-test]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Set up Python
         uses: actions/setup-python@v4
       
       - name: Install build dependencies
-        run: pip install -r requirements_build.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements_build.txt
 
       - name: Download artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: binaries
           path: vespacli/go-binaries
