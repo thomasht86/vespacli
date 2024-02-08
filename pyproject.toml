@@ -27,4 +27,4 @@ repository = "https://github.com/yourusername/vespacli"
 where = ["."]
 
 [project.scripts]
-vespacli = "vespacli:run_vespa_cli"
+vespa = "vespacli:run_vespa_cli"
