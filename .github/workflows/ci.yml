@@ -56,7 +56,7 @@ jobs:
 
       - name: Verify installation
         run: |
-          vespacli version
+          vespa version
 
   build-and-upload:
     needs: [prepare-binaries, build-and-test]
