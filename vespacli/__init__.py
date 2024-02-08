@@ -3,6 +3,7 @@ import platform
 import subprocess
 import sys
 
+vespa_version = "8.299.14"
 
 def get_binary_path():
     base_path = os.path.abspath(os.path.dirname(__file__))
@@ -21,7 +22,7 @@ def get_binary_path():
     else:
         raise OSError("Unsupported operating system")
 
-    binary_dir_name = f"vespa-cli_8.294.50_{os_name}_{arch}"
+    binary_dir_name = f"vespa-cli_{vespa_version}_{os_name}_{arch}"
     binary_path = os.path.join(go_binaries_path, binary_dir_name, "bin")
 
     # Assuming the executable name is consistent and known
