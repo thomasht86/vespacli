@@ -36,17 +36,17 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Update the version (if not NA)
-        if: ${{ steps.check_latest_version.outputs.version }} != "NA"
+        if: ${{ steps.check_latest_version.outputs.version }} != 'NA'
         run: |
           echo "Updating Vespa CLI version to ${{ steps.check_latest_version.outputs.version }}"
           python utils/update_version.py --version ${{ steps.check_latest_version.outputs.version }}
 
       - name: Commit the changes (if not NA)
-        if: ${{ steps.check_latest_version.outputs.version }} != "NA"
+        if: ${{ steps.check_latest_version.outputs.version }} != 'NA'
         uses: EndBug/add-and-commit@v9
         with:
           add: |
             'pyproject.toml'
             'vespacli/_version_generated.py'
-          default_author: github-actions
+          default_author: github_actions
           message: "Update Vespa CLI version to ${{ steps.check_latest_version.outputs.version }}"
