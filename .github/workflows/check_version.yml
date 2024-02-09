@@ -4,7 +4,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *" # Runs at 00:00 UTC daily
-
+  push:
+    branches:
+      - "fix_ci_version"
 jobs:
   check-and-update:
     runs-on: ubuntu-latest
