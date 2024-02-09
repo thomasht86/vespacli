@@ -30,7 +30,6 @@ jobs:
       - name: Check latest version and set variables
         id: check_latest_version
         run: |
-          set -x  # Print each command before executing it, for debugging
           python --version
           cat utils/check_latest_version.py
           version=$(python utils/check_latest_version.py)
@@ -38,12 +37,12 @@ jobs:
           echo "version=$version" >> GITHUB_OUTPUT
 
       - name: Update the version (if not NA)
-        if: ${{ steps.check_latest_version.outputs.version }} != 'NA'
+        if: ${{ steps.check_latest_version.outputs.version }} != "NA"
         run: |
           python utils/update_version.py --version ${{ steps.check_latest_version.outputs.version }}
 
       - name: Commit the changes (if not NA)
-        if: ${{ steps.check_latest_version.outputs.version }} != 'NA'
+        if: ${{ steps.check_latest_version.outputs.version }} != "NA"
         uses: EndBug/add-and-commit@v9
         with:
           add: |
