@@ -33,7 +33,7 @@ jobs:
           version=$(python utils/check_latest_version.py)
           echo "Latest version is $version"
           # Set the output variable
-          echo "version=$version" >> GITHUB_OUTPUT
+          echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Update the version (if not NA)
         if: ${{ steps.check_latest_version.outputs.version }} != "NA"
