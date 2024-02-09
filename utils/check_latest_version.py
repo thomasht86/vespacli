@@ -5,7 +5,6 @@ import sys
 if __name__ == "__main__":
     downloader = VespaBinaryDownloader()
     new_version = downloader.get_latest_version()
-    print("Runs??")
     found_newer = new_version != vespa_version
     if found_newer:
         print(f"{new_version}")
