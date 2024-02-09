@@ -29,6 +29,9 @@ jobs:
 
       - name: Check latest version and set variables
         run: |
+          set -x  # Print each command before executing it, for debugging
+          python --version
+          cat utils/check_latest_version.py
           version="$(python utils/check_latest_version.py)"
           echo "version_number=${version}" >> $GITHUB_ENV
           if [[ "${version}" == "No update required" ]]; then
