@@ -28,6 +28,7 @@ jobs:
           pip install -r requirements_build.txt
           pip install -e .
       - name: Check latest version and set variables
+        id: check_latest_version
         run: |
           set -x  # Print each command before executing it, for debugging
           python --version
