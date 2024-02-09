@@ -27,7 +27,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements_build.txt
           pip install -e .
-      - name: Check latest version and set variables
+      - name: Check latest version and set version variable
         id: check_latest_version
         run: |
           version=$(python utils/check_latest_version.py)
