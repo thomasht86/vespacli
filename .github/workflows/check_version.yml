@@ -26,6 +26,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e . requests # Assuming requests module is needed
 
+      - name: Run python script to check for latest version
+        id: check_version
+        run: |
+          python utils/check_latest_version.py
+
       - name: Check latest version and set variables
         id: set_vars
         run: |
