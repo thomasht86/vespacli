@@ -48,5 +48,5 @@ jobs:
           add: |
             'pyproject.toml'
             'vespacli/_version_generated.py'
-          default_author: github-actions[bot]
+          default_author: github-actions
           message: "Update Vespa CLI version to ${{ steps.check_latest_version.outputs.version }}"
