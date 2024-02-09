@@ -2,13 +2,13 @@ name: Cross-Platform build, test, and upload to TestPyPI
 
 on:
   push:
-    branches: [ rewrite ]
-  pull_request:
-    branches: [ main ]
+    branches: [ rewrite, main ]
 
 jobs:
   prepare-binaries:
     runs-on: ubuntu-latest
+    env:
+      MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
     outputs:
       asset-path: ${{ steps.set-bin-path.outputs.asset-path }}
     steps:
