@@ -3,7 +3,7 @@ import platform
 import subprocess
 import sys
 
-vespa_version = "8.299.14"
+from vespacli._version_generated import vespa_version
 
 def get_binary_path():
     base_path = os.path.abspath(os.path.dirname(__file__))
