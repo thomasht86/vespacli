@@ -33,22 +33,15 @@ jobs:
           python --version
           cat utils/check_latest_version.py
           version=$(python utils/check_latest_version.py)
-          echo "version_number=${version}" >> $GITHUB_ENV
-          if [[ "${version}" == "No update required" ]]; then
-            echo "update_required=false" >> $GITHUB_ENV
-            echo "::set-output name=update_required::false"
-          else
-            echo "update_required=true" >> $GITHUB_ENV
-            echo "::set-output name=update_required::true"
-            echo "::set-output name=version::${version}"
+          echo "::set-output version=$version"
 
       - name: Update the version
-        if: env.update_required == 'true'
+        if: env.version != 'NA'
         run: |
           python utils/update_version.py --version ${{ steps.check_latest_version.outputs.version }}
 
       - name: Commit the changes
-        if: env.update_required == 'true'
+        if: env.version != 'NA'
         uses: EndBug/add-and-commit@v9
         with:
           add: |
