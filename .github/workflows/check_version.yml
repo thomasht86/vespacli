@@ -31,6 +31,7 @@ jobs:
         id: check_latest_version
         run: |
           version=$(python utils/check_latest_version.py)
+          echo "Latest version is $version"
           # Set the output variable
           echo "version=$version" >> GITHUB_OUTPUT
 
