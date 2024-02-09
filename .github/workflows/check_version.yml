@@ -25,8 +25,8 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e . requests # Assuming requests module is needed
-
+          pip install -r requirements_build.txt
+          pip install -e .
       - name: Check latest version and set variables
         run: |
           set -x  # Print each command before executing it, for debugging
