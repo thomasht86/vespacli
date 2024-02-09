@@ -29,7 +29,7 @@ jobs:
       - name: Run the version check script
         id: check_version
         run: |
-          version=$(python check_latest_version.py)
+          version=$(python utils/check_latest_version.py)
           echo "version_number=${version}" >> $GITHUB_ENV
           if [[ "$version" == "No update required" ]]; then
             echo "update_required=false" >> $GITHUB_ENV

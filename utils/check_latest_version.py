@@ -7,8 +7,8 @@ if __name__ == "__main__":
     new_version = downloader.get_latest_version()
     found_newer = new_version != vespa_version
     if found_newer:
-        print(f"New version found: {new_version}")
+        print(f"{new_version}")
     else:
-        print(f"Latest version already installed: {vespa_version}")
+        print(f"No update required")
     # Return version number to be used in CI/CD pipelines
     sys.exit(0 if found_newer else 1)
