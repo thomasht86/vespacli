@@ -34,7 +34,8 @@ jobs:
           python --version
           cat utils/check_latest_version.py
           version=$(python utils/check_latest_version.py)
-          echo "::set-output version=$version"
+          # Set the output variable
+          echo "::set-output name=version::$version"
 
       - name: Update the version
         if: steps.check_latest_version.outputs.version != 'NA'
