@@ -2,7 +2,7 @@ name: Cross-Platform build, test, and upload to TestPyPI
 
 on:
   push:
-    branches: [ rewrite, main ]
+    branches: [ main ]
 
 jobs:
   prepare-binaries:
