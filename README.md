@@ -1,2 +1,3 @@
-# vespa-client
-My own implementation of python client library and CLI for vespa.ai
+# Vespa-go - Python wrapper for Vespa CLI
+
+Trigger run. Once again.
