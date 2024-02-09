@@ -1,2 +1,2 @@
 
-vespa_version = "8.299.14" # 
+vespa_version = "NA" # 
