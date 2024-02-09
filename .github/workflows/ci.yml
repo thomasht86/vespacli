@@ -16,7 +16,8 @@ jobs:
       
       - name: Download latest binaries
         run: |
-          pip install -e . requests
+          pip install -r requirements_build.txt
+          pip install -e .
           python utils/download_binaries.py
 
       - name: Upload binaries as artifact
