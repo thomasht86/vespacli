@@ -10,5 +10,4 @@ if __name__ == "__main__":
         print(f"{new_version}")
     else:
         print(f"No update required")
-    # Return version number to be used in CI/CD pipelines
-    sys.exit(0 if found_newer else 1)
+    sys.exit(0)
