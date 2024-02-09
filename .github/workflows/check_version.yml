@@ -36,12 +36,12 @@ jobs:
           echo "::set-output version=$version"
 
       - name: Update the version
-        if: env.version != 'NA'
+        if: steps.check_latest_version.outputs.version != 'NA'
         run: |
           python utils/update_version.py --version ${{ steps.check_latest_version.outputs.version }}
 
       - name: Commit the changes
-        if: env.version != 'NA'
+        if: steps.check_latest_version.outputs.version != 'NA'
         uses: EndBug/add-and-commit@v9
         with:
           add: |
