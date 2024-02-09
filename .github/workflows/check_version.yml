@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - "fix_ci_version"
+
 jobs:
   check-and-update:
     runs-on: ubuntu-latest
@@ -26,35 +27,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e . requests # Assuming requests module is needed
 
-      - name: Run python script to check for latest version
-        id: check_version
-        run: |
-          python utils/check_latest_version.py
-
       - name: Check latest version and set variables
-        id: set_vars
         run: |
-          version=$(python utils/check_latest_version.py)
+          version="$(python utils/check_latest_version.py)"
           echo "version_number=${version}" >> $GITHUB_ENV
-          if [[ "$version" == "No update required" ]]; then
+          if [[ "${version}" == "No update required" ]]; then
             echo "update_required=false" >> $GITHUB_ENV
             echo "::set-output name=update_required::false"
           else
             echo "update_required=true" >> $GITHUB_ENV
             echo "::set-output name=update_required::true"
-            echo "::set-output name=version::$version"
+            echo "::set-output name=version::${version}"
 
       - name: Update the version
-        if: env.updates_available == 'true'
+        if: env.update_required == 'true'
         run: |
-          python utils/update_version --version ${{ steps.check_version.outputs.version }}
+          python utils/update_version.py --version ${{ steps.check_latest_version.outputs.version }}
 
       - name: Commit the changes
-        uses: EndBug/add-and-commit@v9 # You can change this to use a specific version.
+        if: env.update_required == 'true'
+        uses: EndBug/add-and-commit@v9
         with:
           add: |
             'pyproject.toml'
             'vespacli/_version_generated.py'
           default_author: github-actions[bot]
-          message: "Update Vespa CLI version to ${{ steps.check_version.outputs.version }}"
-        if: env.updates_available == 'true'
+          message: "Update Vespa CLI version to ${{ steps.check_latest_version.outputs.version }}"
