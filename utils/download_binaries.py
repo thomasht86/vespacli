@@ -5,6 +5,7 @@ import tarfile
 from zipfile import ZipFile
 
 import requests
+import argparse
 
 
 class VespaBinaryDownloader:
@@ -21,10 +22,12 @@ class VespaBinaryDownloader:
         "go-binaries",
     )
 
-    def __init__(self):
+    def __init__(self, version) -> None:
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
+        if self.version == "latest":
+            self.version = self.get_latest_version()
         self.github_token = self.get_github_token_from_env()
         if self.github_token:
             logging.info("GitHub token found in environment")
@@ -102,18 +105,27 @@ class VespaBinaryDownloader:
                     raise Exception(f"Checksum verification failed for {filename}")
 
     def run(self):
-        version = self.get_latest_version()
-        logging.info(f"Latest Vespa CLI version: {version}")
+        logging.info(f"Latest Vespa CLI version: {self.version}")
         self.ensure_directory_exists(self.INSTALLATION_DIR)
-        checksum_file = self.download_checksum_file(version)
+        checksum_file = self.download_checksum_file(self.version)
         checksum_content = open(checksum_file, "r").readlines()
         for os_name, archs in self.VALID_OS_ARCH.items():
             for arch in archs:
-                file_path = self.download_and_extract_cli(version, os_name, arch)
+                file_path = self.download_and_extract_cli(self.version, os_name, arch)
                 self.verify_checksum(file_path, checksum_content)
 
         logging.info("Binary download and extraction complete")
 
 
 if __name__ == "__main__":
-    VespaBinaryDownloader().run()
+    parser = argparse.ArgumentParser(description="Download Vespa CLI binaries")
+    parser.add_argument(
+        "-v",
+        "--version",
+        help="Specify the version of Vespa CLI to download",
+        default="latest",
+        required=False,
+    )
+    args = parser.parse_args()
+    version = args.version
+    VespaBinaryDownloader(version=version).run()
