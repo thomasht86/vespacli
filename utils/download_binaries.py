@@ -5,7 +5,7 @@ import tarfile
 from zipfile import ZipFile
 
 import requests
-from vespacli._version_generated import vespa_version
+
 
 class VespaBinaryDownloader:
     # Constants

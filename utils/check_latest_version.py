@@ -9,5 +9,5 @@ if __name__ == "__main__":
     if found_newer:
         print(f"{new_version}")
     else:
-        print(f"NA")
+        print("NA")
     sys.exit(0)
