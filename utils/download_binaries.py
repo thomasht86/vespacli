@@ -26,6 +26,7 @@ class VespaBinaryDownloader:
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
+        self.version = version
         if self.version == "latest":
             self.version = self.get_latest_version()
         self.github_token = self.get_github_token_from_env()
