@@ -1,6 +1,6 @@
 # Vespa-client - Vespa CLI as python package
 
-![ci](https://github.com/thomasht86/vespa-client/actions/workflows/ci.yml/badge.svg)
+![ci](https://github.com/thomasht86/vespa-client/actions/workflows/cross_platform_tests.yml/badge.svg)
 
 Vespa CLI binaries are distributed as part of the Vespa engine, and installation instructions can be found in the [Vespa documentation](https://docs.vespa.ai/en/vespa-cli.html).
 
