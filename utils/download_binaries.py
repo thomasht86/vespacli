@@ -27,8 +27,6 @@ class VespaBinaryDownloader:
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
         self.version = version
-        if self.version == "latest":
-            self.version = self.get_latest_version()
         self.github_token = self.get_github_token_from_env()
         if self.github_token:
             logging.info("GitHub token found in environment")
@@ -37,6 +35,8 @@ class VespaBinaryDownloader:
             if self.github_token
             else None
         )
+        if self.version == "latest":
+            self.version = self.get_latest_version()
 
     def download_file(self, url):
         logging.info(f"Starting download from {url}")
