@@ -48,6 +48,6 @@ jobs:
             'pyproject.toml'
             'vespacli/_version_generated.py'
           # Add `vX.Y.Z` tag to the commit
-          tag: ${{ join(['v', steps.check_latest_version.outputs.version]) }}
+          tag: ${{ format('v{0}', steps.check_latest_version.outputs.version) }}
           default_author: github_actions
           message: "Update Vespa CLI version to ${{ steps.check_latest_version.outputs.version }}"
