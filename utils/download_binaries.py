@@ -22,11 +22,11 @@ class VespaBinaryDownloader:
         "go-binaries",
     )
 
-    def __init__(self, version) -> None:
+    def __init__(self, version= "latest") -> None:
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
-        self.version = version
+        self.version = self._validate_version(version)
         self.github_token = self.get_github_token_from_env()
         if self.github_token:
             logging.info("GitHub token found in environment")
@@ -37,6 +37,15 @@ class VespaBinaryDownloader:
         )
         if self.version == "latest":
             self.version = self.get_latest_version()
+    
+    def _validate_version(self, version):
+        # Must be either "latest" or a valid version number (X.Y.Z)
+        if version != "latest" and not all(
+            part.isdigit() for part in version.split(".") if part
+        ):
+            raise ValueError(f"Invalid version: {version}")
+        else:
+            return version
 
     def download_file(self, url):
         logging.info(f"Starting download from {url}")
