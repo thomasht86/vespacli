@@ -161,3 +161,9 @@ cython_debug/
 
 # Vespa-cli 
 vespa-cli*
+
+# Misc
+optimum/
+simple-onnx/demo/src/main/resources
+models/
+model/
