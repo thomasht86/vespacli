@@ -8,7 +8,7 @@ description = "A Python wrapper for Vespa CLI tools, supporting multiple platfor
 keywords = [ "vespa", "cli", "wrapper",]
 name = "vespacli"
 readme = "README.md"
-version = "8.299.14"
+version = "8.302.40"
 [[project.authors]]
 name = "Your Name"
 email = "your.email@example.com"
