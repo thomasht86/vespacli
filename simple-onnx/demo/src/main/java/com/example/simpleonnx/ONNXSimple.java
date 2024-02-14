@@ -63,7 +63,6 @@ public class ONNXSimple {
     }
 
     private static File createTempFileFromResource(String resourcePath) throws IOException {
-        ONNXSimple.class.getResource
         InputStream resourceStream = ONNXSimple.class.getResourceAsStream(resourcePath);
         if (resourceStream == null) {
             throw new IOException("Resource not found: " + resourcePath);
