@@ -22,7 +22,7 @@ class VespaBinaryDownloader:
         "go-binaries",
     )
 
-    def __init__(self, version= "latest") -> None:
+    def __init__(self, version="latest") -> None:
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
         )
@@ -37,13 +37,15 @@ class VespaBinaryDownloader:
         )
         if self.version == "latest":
             self.version = self.get_latest_version()
-    
+
     def _validate_version(self, version):
-        # Must be either "latest" or a valid version number (X.Y.Z)
+        # Must be either "latest", a valid version number (X.Y.Z) (optional "v" prefix)
         if version != "latest" and not all(
-            part.isdigit() for part in version.split(".") if part
+            part.isdigit() for part in version.strip("v").split(".") if part
         ):
-            raise ValueError(f"Invalid version: {version}")
+            raise ValueError(
+                f"Invalid version: {version}, must be 'latest' or X.Y.Z, with optional 'v' prefix"
+            )
         else:
             return version
 
