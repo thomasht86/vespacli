@@ -43,11 +43,11 @@ class VespaBinaryDownloader:
 
     def _validate_version(self, version):
         # Must be either "latest", "current", or a valid version number (X.Y.Z) (optional "v" prefix)
-        if version != "latest" and not all(
+        if version not in ["latest", "current"] and not all(
             part.isdigit() for part in version.strip("v").split(".") if part
         ):
             raise ValueError(
-                f"Invalid version: {version}, must be 'latest' or X.Y.Z, with optional 'v' prefix"
+                f"Invalid version: {version}, must be 'latest', 'current' or 'X.Y.Z', with optional 'v' prefix"
             )
         else:
             return version
