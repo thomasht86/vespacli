@@ -1,8 +1,8 @@
 name: Cross-Platform build and test
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: "0 0 * * 0" # Run once a week
 
 jobs:
   prepare-binaries:
