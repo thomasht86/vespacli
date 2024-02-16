@@ -68,16 +68,15 @@ jobs:
       - name: Build
         run: |
           python -m build
+      
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*
 
       - name: Upload to PyPI
         if: ${{ github.ref_type == 'tag' }}
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_PROD }}
-        run: twine upload dist/* --non-interactive
-
-      - name: Release
-        uses: softprops/action-gh-release@v1
-        if: ${{ github.ref_type == 'tag' }}
-        with:
-          files: dist/*
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: twine upload -r testpypi dist/* --non-interactive
