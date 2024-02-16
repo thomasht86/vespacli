@@ -40,6 +40,8 @@ def run_vespa_cli():
     args = sys.argv[1:]
     binary_path = get_binary_path()
     full_cmd = [binary_path, *args]
-    print(f"Running command: {' '.join(full_cmd)}")
     result = subprocess.run(full_cmd)
     return
+
+
+__version__ = vespa_version
