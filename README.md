@@ -18,3 +18,7 @@ Python versions >=3.8 <=3.11 are tested, but no reason to believe it should not 
 ## Usage
 
 For usage of the Vespa CLI, see the [Vespa documentation](https://docs.vespa.ai/en/vespa-cli.html).
+
+## Disclaimer
+
+This is an independent contribution and is not affiliated with, nor has it been authorized, sponsored, or otherwise approved by Vespa.ai or any of its affiliates.
