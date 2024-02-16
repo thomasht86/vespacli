@@ -1,4 +1,4 @@
-# Vespa-client - Vespa CLI - python package
+# Vespa CLI - distributed as python package
 
 ![tests](https://github.com/thomasht86/vespa-client/actions/workflows/cross_platform_tests.yml/badge.svg)
 
@@ -7,6 +7,7 @@ Vespa CLI binaries are distributed as part of the Vespa engine. Docs and install
 As a Python user, moving between different environments and handling dependencies, and PATHS can be cumbersome.
 
 By providing the Vespa CLI as a Python package, it is even easier to use Vespa in Python environments.
+It lets you add it to python dependencies, and it is installed in the same way as other python packages, and automatically added to the PATH.
 
 Installation is as simple as running `pip install vespacli`.
 
