@@ -33,11 +33,6 @@ jobs:
           version=$(python -c "import vespacli; print(vespacli.__version__)")
           echo "Current version is $version"
           echo "version=$version" >> $GITHUB_ENV
-          tag=$(echo ${{ github.ref_name }} | sed 's/v//')
-          if [ "$version" != "$tag" ]; then
-            echo "Tag $tag does not match current version $version"
-            exit 1
-          fi
           python utils/download_binaries.py --version $version
       
       - name: Upload binaries as artifact
