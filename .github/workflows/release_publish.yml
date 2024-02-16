@@ -73,8 +73,8 @@ jobs:
         if: ${{ github.ref_type == 'tag' }}
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: twine upload -r testpypi dist/* --non-interactive
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_PROD }}
+        run: twine upload dist/* --non-interactive
 
       - name: Release
         uses: softprops/action-gh-release@v1

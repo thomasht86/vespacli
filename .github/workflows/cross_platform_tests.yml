@@ -3,8 +3,6 @@ name: Cross-Platform build and test
 on:
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
 
 jobs:
   prepare-binaries:
