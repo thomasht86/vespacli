@@ -78,5 +78,5 @@ jobs:
         if: ${{ github.ref_type == 'tag' }}
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_PROD }}
         run: twine upload -r testpypi dist/* --non-interactive
