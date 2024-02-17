@@ -73,10 +73,10 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: dist/*
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || env.version }}
 
       - name: Upload to PyPI
-        if: ${{ github.ref_type == 'tag' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN_PROD }}
-        run: twine upload -r testpypi dist/* --non-interactive
+        run: twine upload dist/* --non-interactive
