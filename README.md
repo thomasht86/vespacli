@@ -1,9 +1,7 @@
 # Vespa CLI - distributed as python package
-
-![PyPI](https://img.shields.io/pypi/v/vespacli)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/vespacli)
-![PyPI - License](https://img.shields.io/pypi/l/vespacli)
-![tests](https://github.com/thomasht86/vespacli/actions/workflows/cross_platform_tests.yml/badge.svg)
+[![image](https://img.shields.io/pypi/v/vespacli.svg)](https://pypi.python.org/pypi/vespacli)
+[![image](https://img.shields.io/pypi/l/vespacli.svg)](https://pypi.python.org/pypi/vespacli)
+![CI/CD](https://github.com/thomasht86/vespacli/actions/workflows/cross_platform_tests.yml/badge.svg)
 
 Vespa CLI binaries are distributed as part of the Vespa engine. Docs and installation instructions can be found in the [Vespa documentation](https://docs.vespa.ai/en/vespa-cli.html).
 
